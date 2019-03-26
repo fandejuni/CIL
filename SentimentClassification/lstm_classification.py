@@ -20,12 +20,13 @@ numpy.random.seed(7)
 
 num_words = 8000
 tweet_length = 30
-
-token_dict = LoadTokenDict("dict_full.txt", num_words)
-(X_train, y_train), (X_test, y_test) = LoadData("processed/train_pos_spellchecked.txt", 
-                                        "processed/train_neg_spellchecked.txt", token_dict)
-
 embedding_vecor_length = 32
+
+token_dict = LoadTokenDict("processed/dict.txt", num_words)
+(X_train, y_train), (X_test, y_test) = LoadData("processed/train_pos_spellchecked.txt", 
+                                        "processed/train_neg_spellchecked.txt", 
+                                        token_dict, tweet_length)
+
 
 ####Model
 model = Sequential()

@@ -51,8 +51,8 @@ def LoadTestData(filename, token_dict, line_len = 30):
     prog_threshold = num_lines/100
     PrintProgress(prog_text, 0)
     with open(filename, encoding="utf8") as file:
-        x = numpy.zeros(line_len, dtype = numpy.int)
         for i, line in enumerate(file):
+            x = numpy.zeros(line_len, dtype = numpy.int)
             if i>prog_threshold:
                 prog_threshold += num_lines/100
                 PrintProgress(prog_text, i*100//num_lines)
@@ -69,7 +69,7 @@ def LoadTestData(filename, token_dict, line_len = 30):
     return X
 
 
-def LoadData(filename_pos, filename_neg, token_dict, line_len = 30, prop = 0.85):
+def LoadData(filename_pos, filename_neg, token_dict, line_len = 30, prop = 0.8):
     
     num_pos = CountFileLines(filename_pos)
     num_neg = CountFileLines(filename_neg)
@@ -83,8 +83,8 @@ def LoadData(filename_pos, filename_neg, token_dict, line_len = 30, prop = 0.85)
         prog_threshold = num_lines/100
         PrintProgress(prog_text, 0)
         with open(filename, encoding="utf8") as file:
-            x = numpy.zeros(line_len, dtype = numpy.int)
             for i, line in enumerate(file):
+                x = numpy.zeros(line_len, dtype = numpy.int)
                 if i>prog_threshold:
                     prog_threshold += num_lines/100
                     PrintProgress(prog_text, i*100//num_lines)
@@ -94,7 +94,7 @@ def LoadData(filename_pos, filename_neg, token_dict, line_len = 30, prop = 0.85)
                     token = GetStem(token)
                     if token in token_dict:
                         x[j] = token_dict[token]
-                X[xi] = x
+                X[xi,:] = x
                 xi += 1
         PrintProgress(prog_text, -1)
     y = numpy.zeros(num_tot, dtype = numpy.int)
