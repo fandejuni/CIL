@@ -35,11 +35,8 @@ def masks_to_submission(submission_filename, *image_filenames):
         for fn in image_filenames[0:]:
             f.writelines('{}\n'.format(s) for s in mask_to_submission_strings(fn))
 
-
-if __name__ == '__main__':
-    submission_filename = 'dummy_submission.csv'
-    dir_path = "pixel_prediction/"
-    image_filenames =  [dir_path+filename for filename in os.listdir(dir_path) if filename.endswith(".png")]
+def generate(submission_filename="../submissions/dummy_submission.csv", dir_path="../cnn/predictions_test/"):
+    image_filenames =  [str(dir_path / filename) for filename in os.listdir(dir_path) if filename.endswith(".png")]
     """
     for i in range(1, 51):
         image_filename = 'training/groundtruth/satImage_' + '%.3d' % i + '.png'

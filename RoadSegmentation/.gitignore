@@ -1,1 +1,3 @@
-*.csv
+*.png
+*.npy
+__pycache__
