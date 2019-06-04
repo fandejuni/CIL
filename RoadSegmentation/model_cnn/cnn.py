@@ -342,7 +342,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 print("Model saved in file: %s" % save_path)
 
 
-        # generate.run_predictions_training_set("cnn", get_prediction, TRAINING_SIZE)
+        generate.run_predictions_training_set("cnn", get_prediction, TRAINING_SIZE)
         generate.run_predictions_test_set("cnn", get_prediction)
         #for f in os.listdir(test_dir):
             #print("Predicting " + f + "...")

@@ -32,7 +32,7 @@ def get_prediction_with_overlay(filename, image_idx, get_prediction):
     return oimg
 
 
-def run_predictions_training_set(name, get_prediction, TRAINING_SIZE):
+def run_predictions_training_set(name, get_prediction, TRAINING_SIZE=100):
 
     data_dir = project_paths.DATA_PATH / "training"
     train_data_filename = data_dir / 'images'

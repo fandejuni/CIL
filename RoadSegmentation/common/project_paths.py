@@ -8,8 +8,6 @@ Created on Fri May 24 14:32:16 2019
 from pathlib import Path
 
 PARENT_PATH = Path(__file__).resolve().parent.parent
-MODEL_PATH = Path(__file__).resolve().parent.parent / "models"
-PREDICTION_PATH = Path(__file__).resolve().parent.parent / "predictions"
 DATA_PATH = PARENT_PATH / "data"
 
 TEST_DIR_PATH = DATA_PATH / "test_images"

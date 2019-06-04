@@ -13,8 +13,7 @@ if __name__ == '__main__' and __package__ is None:
     from os import sys, path
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from common.project_paths import DATA_PATH, MODEL_PATH
-from common import generate
+from common import generate, project_paths
 
 
 ### Data Loading
@@ -39,8 +38,8 @@ def main():
 
     print("Pixelwise training")
 
-    (X_train, y_train), (X_test, y_test) = LoadTrainData(DATA_PATH / "saved" / "train_images.npy", 
-                                            DATA_PATH / "saved" / "train_groundtruth.npy")
+    (X_train, y_train), (X_test, y_test) = LoadTrainData(project_paths.DATA_PATH / "saved" / "train_images.npy", 
+                                            project_paths.DATA_PATH / "saved" / "train_groundtruth.npy")
 
     #### Model
     model = Sequential()
@@ -58,8 +57,8 @@ def main():
     scores = model.evaluate(X_test, y_test, verbose=1)
     print("Accuracy: %.2f%%" % (scores[1]*100))
 
-    generate.create_folder(MODEL_PATH / "pixelwise")
-    model.save(MODEL_PATH / "pixelwise" / "model.h5")
+    generate.create_folder(project_paths.MODELS_PATH / "pixelwise")
+    model.save(project_paths.MODELS_PATH / "pixelwise" / "model.h5")
 
 if __name__ == "__main__":
     main()

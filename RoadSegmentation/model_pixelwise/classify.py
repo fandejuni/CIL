@@ -17,8 +17,7 @@ if __name__ == '__main__' and __package__ is None:
     from os import sys, path
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from common.project_paths import DATA_PATH, MODEL_PATH, PREDICTION_PATH
-
+from common import project_paths, generate
 
 ### Data Loading
 def LoadTestData(test_path):
@@ -30,15 +29,26 @@ def LoadTestData(test_path):
 
 def main():
 
-    model = load_model(MODEL_PATH / "model.h5")
+    model = load_model(project_paths.MODELS_PATH / "pixelwise" / "model.h5")
 
-    X, ids = LoadTestData(DATA_PATH / "saved" / "test_images.npy")
+    def get_prediction(img):
+        y = model.predict(img)
+        y = np.reshape(y, (IM_HEIGHT, IM_WIDTH))
+        Y = (y - y.min()) / (y.max() - y.min())
+        return Y
 
-    y = model.predict(X, verbose=1)
-    y = np.reshape(y, (-1, IM_HEIGHT, IM_WIDTH))
+    #X, ids = LoadTestData(project_paths.DATA_PATH / "saved" / "test_images.npy")
 
-    for i in range(len(ids)):
-        I = y[i]
-        I8 = (((I - I.min()) / (I.max() - I.min())) * 255.9).astype(np.uint8)
-        img = Image.fromarray(I8)
-        img.save(PREDICTION_PATH / "prediction_{}.png".format(ids[i]))
+    #y = model.predict(X, verbose=1)
+    #y = np.reshape(y, (-1, IM_HEIGHT, IM_WIDTH))
+
+    #for i in range(len(ids)):
+        #I = y[i]
+        #I8 = (((I - I.min()) / (I.max() - I.min())) * 255.9).astype(np.uint8)
+        #img = Image.fromarray(I8)
+        #generate.create_folder(project_paths.RESULTS_TEST_PATH / "pixelwise")
+        #img.save(project_paths.RESULTS_TEST_PATH / "pixelwise" / "prediction_{}.png".format(ids[i]))
+    generate.run_predictions_test_set("pixelwise", get_prediction)
+
+if __name__ == "__main__":
+    main()
