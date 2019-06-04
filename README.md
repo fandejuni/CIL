@@ -30,5 +30,5 @@ en début de fichier Python avant d'importer common.whatever
 
 ## Utiliser les fonctions pour générer des résultats
 
-generate.run_predictions_training_set("cnn", get_prediction, TRAINING_SIZE)
-generate.run_predictions_test_set("cnn", get_prediction)
+* generate.run_predictions_training_set("cnn", get_prediction, TRAINING_SIZE)
+* generate.run_predictions_test_set("cnn", get_prediction)
