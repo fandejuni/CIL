@@ -30,8 +30,8 @@ NUM_LABELS = 2
 TRAINING_SIZE = 80
 VALIDATION_SIZE = 20  # Size of the validation set.
 SEED = 66478  # Set to None for random seed.
-BATCH_SIZE = 16 # 64
-NUM_EPOCHS = 1
+BATCH_SIZE = 32 # 64
+NUM_EPOCHS = 10
 RESTORE_MODEL = False # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
 
