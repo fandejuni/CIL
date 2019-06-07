@@ -49,7 +49,7 @@ def extract_data(filename, num_images, IMG_PATCH_SIZE):
             img = mpimg.imread(str(image_filename))
             imgs.append(img)
         else:
-            print ('File ' + image_filename + ' does not exist')
+            print ('File ' + str(image_filename) + ' does not exist')
 
     num_images = len(imgs)
     IMG_WIDTH = imgs[0].shape[0]
