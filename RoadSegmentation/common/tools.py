@@ -15,10 +15,14 @@ import common.project_paths
 def solution_to_img(sol):
     (xx, yy) = sol.shape
     img = np.zeros([xx, yy, 3])
-    for x in range(xx):
-        for y in range(yy):
-            for c in range(3):
-                img[x, y, c] = sol[x, y] * 255
+    img[:, :, 0] = sol[:, :]
+    img[:, :, 1] = sol[:, :]
+    img[:, :, 2] = sol[:, :]
+    img *= 255
+    # for x in range(xx):
+        # for y in range(yy):
+            # for c in range(3):
+                # img[x, y, c] = sol[x, y] * 255
     return img.astype(np.uint8)
 
 # Extract patches from a given image
@@ -136,6 +140,9 @@ def img_float_to_uint8(img, PIXEL_DEPTH=255):
     return rimg
 
 def concatenate_images(img, gt_img, PIXEL_DEPTH=255):
+
+    print(img.shape, gt_img.shape)
+
     nChannels = len(gt_img.shape)
     w = gt_img.shape[0]
     h = gt_img.shape[1]

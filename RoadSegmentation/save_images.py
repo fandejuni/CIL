@@ -36,6 +36,6 @@ def save_images(dir_path, output_path):
 
 
 if __name__ == '__main__':
-    save_images("../data/training/groundtruth/", "../data/saved/train_groundtruth.npy")
-    save_images("../data/training/images/", "../data/saved/train_images.npy")
-    save_images("../data/test_images/", "../data/saved/test_images.npy")
+    save_images("data/training/groundtruth/", "data/saved/train_groundtruth.npy")
+    save_images("data/training/images/", "data/saved/train_images.npy")
+    save_images("data/test_images/", "data/saved/test_images.npy")

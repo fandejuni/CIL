@@ -51,7 +51,7 @@ def run_predictions_training_set(name, get_prediction, TRAINING_SIZE=100):
 
 
 
-def run_predictions_test_set(name, get_prediction):
+def run_predictions_test_set(name, get_prediction, preprocessed=None):
 
     print ("Running prediction on test set")
     #mask_test_dir = "masks_test/"
@@ -64,16 +64,24 @@ def run_predictions_test_set(name, get_prediction):
     create_folder(masks_test_dir)
     create_folder(results_test_dir)
 
-    l = os.listdir(test_dir)
-    i = 1
-    for f in l:
+    if not (preprocessed is None):
+        print(preprocessed.shape)
 
-        print("Predicting " + f + "...", str(i) + "/" + str(len(l)))
-        i += 1
+    l = os.listdir(test_dir)
+    for i in range(len(l)):
+
+        f = l[i]
+        print("Predicting " + f + "...", str(i+1) + "/" + str(len(l)))
 
         img = mpimg.imread(str(test_dir / f))
+
+        if not (preprocessed is None):
+            img = preprocessed[i]
+
         img_pred = get_prediction(img)
         img_prediction = tools.solution_to_img(img_pred)
+
+        img = mpimg.imread(str(test_dir / l[i]))
 
         Image.fromarray(img_prediction).save(str(results_test_dir / f))
 
