@@ -21,7 +21,7 @@ def LoadTrainData(images_path, groundtruth_path, prop = 0.8):
     images = np.load(open(images_path,"rb"))
     groundtruth = np.load(open(groundtruth_path,"rb"))
 
-    X = np.reshape(images, (-1, X.shape[-1]))
+    X = np.reshape(images, (-1, images.shape[-1]))
     y = np.reshape(groundtruth, (-1))
 
     print(X.shape, y.shape)
@@ -60,8 +60,8 @@ def main():
     scores = model.evaluate(X_test, y_test, verbose=1)
     print("Accuracy: %.2f%%" % (scores[1]*100))
 
-    generate.create_folder(project_paths.MODELS_PATH / "small_square")
-    model.save(project_paths.MODELS_PATH / "small_square" / "model.h5")
+    generate.create_folder(project_paths.MODELS_PATH / "smallsquares")
+    model.save(project_paths.MODELS_PATH / "smallsquares" / "model.h5")
 
 if __name__ == "__main__":
     main()

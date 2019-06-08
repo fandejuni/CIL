@@ -5,14 +5,22 @@ import numpy as np
 import matplotlib.image as mpimg
 import re
 
-foreground_threshold = 0.5 # percentage of pixels > 1 required to assign a foreground label to a patch
+foreground_threshold = 0.7 # percentage of pixels > 1 required to assign a foreground label to a patch
+
+n_zeros = 0.0
+n_ones = 0.0
 
 # assign a label to a patch
 def patch_to_label(patch):
+
+    global n_zeros, n_ones
+
     df = np.mean(patch)
     if df > foreground_threshold:
+        n_ones += 1.
         return 1
     else:
+        n_zeros += 1.
         return 0
 
 
@@ -44,3 +52,4 @@ def generate(submission_filename="../submissions/dummy_submission.csv", dir_path
         image_filenames.append(image_filename)
     """
     masks_to_submission(submission_filename, *image_filenames)
+    print(n_ones / (n_zeros + n_ones))

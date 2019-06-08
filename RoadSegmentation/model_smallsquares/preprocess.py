@@ -15,6 +15,26 @@ if __name__ == '__main__' and __package__ is None:
 
 from common import generate, project_paths
 
+def l1(x):
+    return max(abs(x[0]), abs(x[1]))
+
+# L1 norm
+def getNeighbourhood(size=1):
+    center = (0, 0)
+    l = []
+    for x in range(-size, size + 1):
+        for y in range(-size, size + 1):
+            if l1((x, y)) == size:
+                l.append((x, y))
+    return l
+
+def avg(l):
+    n = 0.0
+    x = np.zeros(l[0].shape)
+    for xx in l:
+        x += xx
+        n += 1.0
+    return x / n
 
 ### Data Loading
 def preprocess(images_path, save_path):
@@ -26,20 +46,24 @@ def preprocess(images_path, save_path):
     def getPixel(index, x, y):
         return images[index, min(max(x, 0), img_size0 - 1), min(max(y, 0), img_size1 - 1)]
 
-    size = 1
+    max_size = 2
+
     n = images.shape[0]
     s1 = images.shape[1]
     s2 = images.shape[2]
 
-    X = np.zeros([n, s1, s2, 15])
+    X = np.zeros([n, s1, s2, (max_size + 1) * 3])
     X[:, :, :, :3] = images
 
     for i in range(n):
         print(i + 1, n)
         for x in range(s1):
             for y in range(s2):
-                for (j, (xx, yy)) in enumerate([(-1, 0), (0, -1), (1, 0), (0, 1)]):
-                    X[i, x, y, (j + 1)*3:(j+2)*3] = getPixel(i, x + xx, y + yy)
+                for size in range(max_size):
+                    l = []
+                    for (j, (xx, yy)) in enumerate(getNeighbourhood(size + 1)):
+                        l.append(getPixel(i, x + xx, y + yy))
+                    X[i, x, y, (size + 1)*3:(size+2)*3] = avg(l)
         print(X[i][1][1])
 
     np.save(save_path, X)
