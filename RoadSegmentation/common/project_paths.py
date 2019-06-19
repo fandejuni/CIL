@@ -14,7 +14,7 @@ TEST_DIR_PATH = DATA_PATH / "test_images"
 
 TRAIN_DIR_PATH = DATA_PATH / "training"
 TRAIN_IMAGE_PATH = TRAIN_DIR_PATH / "images"
-TRAIN_GROUNDTRUTH_PATH = DATA_PATH / "groundtruth"
+TRAIN_GROUNDTRUTH_PATH = TRAIN_DIR_PATH / "groundtruth"
 
 
 
