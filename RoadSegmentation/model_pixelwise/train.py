@@ -5,6 +5,8 @@ Created on Thu June 3 21:48:05 2019
 @author: Thibault Dardinier
 """
 
+augmented = True
+
 import numpy as np
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense

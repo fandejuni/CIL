@@ -12,6 +12,7 @@ import matplotlib.image as mpimg
 
 def save_images(dir_path, output_path):
     image_files = [filename for filename in os.listdir(dir_path) if filename.endswith(".png")] 
+    image_files.sort()
     num_images = len(image_files)
 
     if num_images == 0:

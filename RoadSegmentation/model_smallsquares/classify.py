@@ -12,6 +12,9 @@ IM_WIDTH = 608
 import numpy as np
 from tensorflow.keras.models import load_model
 from PIL import Image
+import os
+
+import conf
 
 if __name__ == '__main__' and __package__ is None:
     from os import sys, path
@@ -21,7 +24,7 @@ from common import project_paths, generate
 
 def main():
 
-    model = load_model(project_paths.MODELS_PATH / "smallsquares" / "model.h5")
+    model = load_model(project_paths.MODELS_PATH / conf.name / conf.model)
 
     def get_prediction(img):
         print(img.shape)
@@ -41,8 +44,24 @@ def main():
         #img = Image.fromarray(I8)
         #generate.create_folder(project_paths.RESULTS_TEST_PATH / "pixelwise")
         #img.save(project_paths.RESULTS_TEST_PATH / "pixelwise" / "prediction_{}.png".format(ids[i]))
-    images = np.load(open(project_paths.PREPROCESSED_PATH / "smallsquares" / "test.npy", "rb"))
-    generate.run_predictions_test_set("smallsquares", get_prediction, images)
+    if conf.morpho:
+
+        images = np.zeros([0, 608, 608, 7])
+        path = project_paths.PREPROCESSED_PATH / "morphological" / "test"
+        for f in sorted(os.listdir(path)):
+        # for i in range(1, 101):
+            # f = "satImage_" + str(i).zfill(3) + ".npy"
+            image = np.load(open(path / f, "rb"))
+            image = np.reshape(image, [1, 608, 608, 7])
+            images = np.append(images, image, axis=0)
+            print(f, images.shape)
+
+        images = np.reshape(images, [94, 608, 608, 7])
+
+    else:
+        images = np.load(open(project_paths.PREPROCESSED_PATH / "smallsquares" / "test.npy", "rb"))
+
+    generate.run_predictions_test_set(conf.name, get_prediction, images)
 
 if __name__ == "__main__":
     main()

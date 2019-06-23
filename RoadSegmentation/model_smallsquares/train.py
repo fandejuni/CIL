@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -
 """
 Created on Thu June 3 21:48:05 2019
-
-@author: Thibault Dardinier
 """
 
 import numpy as np
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+import os
+
+import conf
 
 if __name__ == '__main__' and __package__ is None:
     from os import sys, path
@@ -15,10 +16,20 @@ if __name__ == '__main__' and __package__ is None:
 
 from common import generate, project_paths
 
-
 ### Data Loading
 def LoadTrainData(images_path, groundtruth_path, prop = 0.8):
-    images = np.load(open(images_path,"rb"))
+
+    if conf.morpho:
+        images = np.zeros([0, 400, 400, 7])
+        path = project_paths.PREPROCESSED_PATH / "morphological" / "train"
+        for i in range(1, 101):
+            f = "satImage_" + str(i).zfill(3) + ".npy"
+            image = np.load(open(path / f, "rb"))
+            image = np.reshape(image, [1, 400, 400, 7])
+            images = np.append(images, image, axis=0)
+            print(f, images.shape)
+    else:
+        images = np.load(open(images_path,"rb"))
     groundtruth = np.load(open(groundtruth_path,"rb"))
 
     X = np.reshape(images, (-1, images.shape[-1]))
@@ -40,11 +51,12 @@ def main():
 
     print("Small square training")
 
-    (X_train, y_train), (X_test, y_test) = LoadTrainData(project_paths.PREPROCESSED_PATH / "smallsquares" / "train.npy", 
+    (X_train, y_train), (X_test, y_test) = LoadTrainData(project_paths.PREPROCESSED_PATH / conf.name / "train.npy", 
                                             project_paths.DATA_PATH / "saved" / "train_groundtruth.npy")
 
     #### Model
     model = Sequential()
+    model.add(Dense(20, activation='sigmoid'))
     model.add(Dense(20, activation='sigmoid'))
     model.add(Dense(10, activation='sigmoid'))
     model.add(Dense(5, activation='sigmoid'))
@@ -60,8 +72,8 @@ def main():
     scores = model.evaluate(X_test, y_test, verbose=1)
     print("Accuracy: %.2f%%" % (scores[1]*100))
 
-    generate.create_folder(project_paths.MODELS_PATH / "smallsquares")
-    model.save(project_paths.MODELS_PATH / "smallsquares" / "model.h5")
+    generate.create_folder(project_paths.MODELS_PATH / conf.name)
+    model.save(project_paths.MODELS_PATH / conf.name / conf.model)
 
 if __name__ == "__main__":
     main()

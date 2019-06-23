@@ -67,7 +67,8 @@ def run_predictions_test_set(name, get_prediction, preprocessed=None):
     if not (preprocessed is None):
         print(preprocessed.shape)
 
-    l = os.listdir(test_dir)
+    l = [x for x in os.listdir(test_dir) if x[-4:] == ".png"]
+    l.sort()
     for i in range(len(l)):
 
         f = l[i]

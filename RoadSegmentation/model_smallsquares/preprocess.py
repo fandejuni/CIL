@@ -37,34 +37,28 @@ def avg(l):
     return x / n
 
 ### Data Loading
-def preprocess(images_path, save_path):
-    images = np.load(open(images_path,"rb"))
+def augment_neighbours(image_path, save_path):
+    image = np.load(open(image_path,"rb"))
 
-    img_size0 = images.shape[1]
-    img_size1 = images.shape[2]
+    s1 = image.shape[0]
+    s2 = image.shape[1]
+    n_features = image.shape[2]
 
-    def getPixel(index, x, y):
-        return images[index, min(max(x, 0), img_size0 - 1), min(max(y, 0), img_size1 - 1)]
+    def getPixel(x, y):
+        return image[min(max(x, 0), s1 - 1), min(max(y, 0), s2 - 1)]
 
     max_size = 2
 
-    n = images.shape[0]
-    s1 = images.shape[1]
-    s2 = images.shape[2]
+    X = np.zeros([s1, s2, (max_size + 1) * n_features])
+    X[:, :, :n_features] = image
 
-    X = np.zeros([n, s1, s2, (max_size + 1) * 3])
-    X[:, :, :, :3] = images
-
-    for i in range(n):
-        print(i + 1, n)
-        for x in range(s1):
-            for y in range(s2):
-                for size in range(max_size):
-                    l = []
-                    for (j, (xx, yy)) in enumerate(getNeighbourhood(size + 1)):
-                        l.append(getPixel(i, x + xx, y + yy))
-                    X[i, x, y, (size + 1)*3:(size+2)*3] = avg(l)
-        print(X[i][1][1])
+    for x in range(s1):
+        for y in range(s2):
+            for size in range(max_size):
+                l = []
+                for (j, (xx, yy)) in enumerate(getNeighbourhood(size + 1)):
+                    l.append(getPixel(x + xx, y + yy))
+                X[x, y, (size + 1)*n_features:(size+2)*n_features] = avg(l)
 
     np.save(save_path, X)
 
