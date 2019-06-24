@@ -9,6 +9,7 @@ import sys
 import urllib
 import matplotlib.image as mpimg
 from PIL import Image
+from random import randint
 import numpy as np
 import common.project_paths
 
@@ -26,19 +27,24 @@ def solution_to_img(sol):
     return img.astype(np.uint8)
 
 # Extract patches from a given image
-def img_crop(im, w, h):
+def img_crop(im, w, h, stride_x=None, stride_y=None):
+    if stride_x == None:
+        stride_x = w
+    if stride_y == None:
+        stride_y = h
     list_patches = []
-    imgwidth = im.shape[0]
-    imgheight = im.shape[1]
-    is_2d = len(im.shape) < 3
-    for i in range(0,imgheight,h):
-        for j in range(0,imgwidth,w):
+    imgheight = im.shape[0]
+    imgwidth = im.shape[1]
+    is_2d = im.ndim < 3
+    for i in range(0,imgheight-h+stride_y,stride_y):
+        for j in range(0,imgwidth-w+stride_x,stride_x):
             if is_2d:
-                im_patch = im[j:j+w, i:i+h]
+                im_patch = im[i:i+w, j:j+h]
             else:
-                im_patch = im[j:j+w, i:i+h, :]
+                im_patch = im[i:i+w, j:j+h, :]
             list_patches.append(im_patch)
     return list_patches
+
 
 def extract_data(filename, num_images, IMG_PATCH_SIZE):
     """Extract the images into a 4D tensor [image index, y, x, channels].
@@ -66,9 +72,8 @@ def extract_data(filename, num_images, IMG_PATCH_SIZE):
     return np.asarray(data)
         
 # Assign a label to a patch v
-def value_to_class(v):
-    foreground_threshold = 0.25 # percentage of pixels > 1 required to assign a foreground label to a patch
-    df = np.sum(v)
+def value_to_class(v, foreground_threshold = 0.25):
+    df = np.mean(v)
     if df > foreground_threshold:
         return [0, 1]
     else:
@@ -169,3 +174,18 @@ def make_img_overlay(img, predicted_img, PIXEL_DEPTH=255):
     overlay = Image.fromarray(color_mask, 'RGB').convert("RGBA")
     new_img = Image.blend(background, overlay, 0.2)
     return new_img
+	
+def pad_with_reflection(img, padding):
+    npad = [(padding,padding),(padding,padding)] + [(0,0)]*(img.ndim-2)
+    return np.pad(img, npad, mode = 'reflect')
+	
+def random_transformation(img):
+    r = randint(0,3)
+    img = np.rot90(img,r)
+    if randint(0,1):
+        img = np.flipud(img)
+    r = randint(-10,10)/100
+    img[:,:,randint(0,img.shape[2]-1)] += r
+    r = 0.8 + randint(0,40)/100
+    img[:,:,randint(0,img.shape[2]-1)] *= r
+    return img
