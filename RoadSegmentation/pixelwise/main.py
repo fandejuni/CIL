@@ -13,6 +13,7 @@ from tensorflow.keras.models import load_model
 import tools
 import distance
 import neighbours
+import patch
 import nn
 import evaluation
 
@@ -22,10 +23,6 @@ def saveImagesOneByOne(in_path, out_path):
         print("Saving...", filename)
         image = mpimg.imread(in_path + filename)
         np.save(out_path + filename[:-4], image)
-
-def shuffle(X):
-    np.random.seed(42)
-    np.random.shuffle(X)
 
 def augmentNeighbours(X):
     XX = np.zeros(list(X.shape[:-1]) + [X.shape[-1] * 9])
@@ -38,24 +35,14 @@ def augmentNeighbours(X):
 def reshape(X):
     return np.reshape(X, [-1, X.shape[-1]])
 
-def prepare(X):
-    X = reshape(X)
-    shuffle(X)
-    return X
+def trainModels(train, groundtruth, name, useDistance=False, useNeighbours=False, usePatch=False, layers=[5, 3, 1], k=5):
 
-def trainModels(train, groundtruth, name, useDistance=False, useNeighbours=False, layers=[5, 3, 1], k=5):
+    # old_shape = train.shape
 
-    if useNeighbours:
-        train = augmentNeighbours(train)
+    # X = reshape(train)
+    # Y = np.reshape(groundtruth, [-1])
 
-    old_shape = train.shape
-
-    X = reshape(train)
-    Y = np.reshape(groundtruth, [-1])
-    shuffle(X)
-    shuffle(Y)
-
-    n = len(X) // k
+    n = len(train) // k
 
     for i in range(k):
         out_path = "models/" + name + "_" + str(i) + ".h5"
@@ -63,29 +50,28 @@ def trainModels(train, groundtruth, name, useDistance=False, useNeighbours=False
 
             print("Training model...", name, i)
 
-            XX = np.concatenate([X[:i*n], X[(i+1)*n:]])
-            YY = np.concatenate([Y[:i*n], Y[(i+1)*n:]])
+            XX = np.concatenate([train[:i*n], train[(i+1)*n:]])
+            YY = np.concatenate([groundtruth[:i*n], groundtruth[(i+1)*n:]])
 
             if useDistance:
-
-                new_shape = [old_shape[0] * (k - 1) // k] + list(old_shape[1:])
-                print(XX.shape, new_shape)
-                XX = np.reshape(XX, new_shape)
-                YY = np.reshape(YY, new_shape[:-1])
-                print(XX.shape)
-
                 mean_point = distance.computeMeanPoint(XX, YY)
-                print("Mean point", mean_point)
                 XX = distance.augmentImages(XX, mean_point)
 
-                XX = reshape(XX)
-                YY = np.reshape(YY, [-1])
+            if useNeighbours:
+                XX = augmentNeighbours(XX)
+
+            if usePatch:
+                XX = patch.convertImages(XX)
+                YY = patch.convertGroundtruth(YY)
+
+            XX = reshape(XX)
+            YY = np.reshape(YY, [-1])
 
             model = nn.train(XX, YY, layers)
             model.save(out_path)
             del model
 
-def savePredictions(train, groundtruth, name, useDistance=False, useNeighbours=False, k=5):
+def savePredictions(train, groundtruth, name, useDistance=False, useNeighbours=False, usePatch=False, k=5):
 
     if useNeighbours:
         train = augmentNeighbours(train)
@@ -94,8 +80,6 @@ def savePredictions(train, groundtruth, name, useDistance=False, useNeighbours=F
 
     X = reshape(train)
     Y = np.reshape(groundtruth, [-1])
-    shuffle(X)
-    shuffle(Y)
 
     n = len(X) // k
 
@@ -152,6 +136,7 @@ def trainAll(name="base", layers=[5, 5, 1]):
 
     trainModels(train, groundtruth, name, layers=layers)
     trainModels(train, groundtruth, name + "_d", layers=layers, useDistance=True)
+    trainModels(train, groundtruth, name + "_p", layers=layers, usePatch=True)
     # trainModels(train, groundtruth, name + "_n", layers=layers, useNeighbours=True)
 
 def generatePredictions(name="base"):
@@ -174,7 +159,7 @@ def evaluateAll():
         print(x, evaluation.evaluate(x))
 
 # saveImages()
-# trainAll("base")
+trainAll("base")
 # trainAll("morpho")
 # generatePredictions("base")
 # generatePredictions("morpho")
