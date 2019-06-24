@@ -8,10 +8,13 @@ Created on Thu May 23 21:15:05 2019
 import os
 import numpy as np
 import matplotlib.image as mpimg
+from tensorflow.keras.models import load_model
 
 import tools
 import distance
 import neighbours
+import nn
+import evaluation
 
 def saveImagesOneByOne(in_path, out_path):
     tools.create_folder(out_path)
@@ -35,49 +38,145 @@ def augmentNeighbours(X):
 def reshape(X):
     return np.reshape(X, [-1, X.shape[-1]])
 
-# if __name__ == '__main__':
+def prepare(X):
+    X = reshape(X)
+    shuffle(X)
+    return X
+
+def trainModels(train, groundtruth, name, useDistance=False, useNeighbours=False, layers=[5, 3, 1], k=5):
+
+    if useNeighbours:
+        train = augmentNeighbours(train)
+
+    old_shape = train.shape
+
+    X = reshape(train)
+    Y = np.reshape(groundtruth, [-1])
+    shuffle(X)
+    shuffle(Y)
+
+    n = len(X) // k
+
+    for i in range(k):
+        out_path = "models/" + name + "_" + str(i) + ".h5"
+        if not os.path.isfile(out_path):
+
+            print("Training model...", name, i)
+
+            XX = np.concatenate([X[:i*n], X[(i+1)*n:]])
+            YY = np.concatenate([Y[:i*n], Y[(i+1)*n:]])
+
+            if useDistance:
+
+                new_shape = [old_shape[0] * (k - 1) // k] + list(old_shape[1:])
+                print(XX.shape, new_shape)
+                XX = np.reshape(XX, new_shape)
+                YY = np.reshape(YY, new_shape[:-1])
+                print(XX.shape)
+
+                mean_point = distance.computeMeanPoint(XX, YY)
+                print("Mean point", mean_point)
+                XX = distance.augmentImages(XX, mean_point)
+
+                XX = reshape(XX)
+                YY = np.reshape(YY, [-1])
+
+            model = nn.train(XX, YY, layers)
+            model.save(out_path)
+            del model
+
+def savePredictions(train, groundtruth, name, useDistance=False, useNeighbours=False, k=5):
+
+    if useNeighbours:
+        train = augmentNeighbours(train)
+
+    old_shape = train.shape
+
+    X = reshape(train)
+    Y = np.reshape(groundtruth, [-1])
+    shuffle(X)
+    shuffle(Y)
+
+    n = len(X) // k
+
+    for i in range(k):
+        model_path = "models/" + name + "_" + str(i) + ".h5"
+        out_path = "predictions/" + name + "_" + str(i) + ".npy"
+        if not os.path.isfile(out_path):
+
+            print("Predicting with model...", name, i)
+
+            XX = np.concatenate([X[:i*n], X[(i+1)*n:]])
+            YY = np.concatenate([Y[:i*n], Y[(i+1)*n:]])
+
+            if useDistance:
+
+                new_shape = [old_shape[0] * (k - 1) // k] + list(old_shape[1:])
+                print(XX.shape, new_shape)
+                XX = np.reshape(XX, new_shape)
+                YY = np.reshape(YY, new_shape[:-1])
+                print(XX.shape)
+
+                mean_point = distance.computeMeanPoint(XX, YY)
+                print("Mean point", mean_point)
+                XX = distance.augmentImages(XX, mean_point)
+
+                XX = reshape(XX)
+                YY = np.reshape(YY, [-1])
+
+            model = load_model(model_path)
+            YYY = model.predict(XX, verbose=1)
+            np.save(out_path, YYY)
+            YY = np.reshape(YY, [-1])
+            np.save("predictions/truth_" + name + "_" + str(i), YY)
+            del model
+
+
 
 data_path = "../data/"
 preproc_path = data_path + "preprocessed/"
 groundtruth_path = preproc_path + "groundtruth/"
 
-saveImagesOneByOne(data_path + "training/groundtruth/", groundtruth_path)
+def saveImages():
+    saveImagesOneByOne(data_path + "training/groundtruth/", groundtruth_path)
+    saveImagesOneByOne(data_path + "training/images/",  preproc_path + "base/train/")
+    saveImagesOneByOne(data_path + "test_images/", preproc_path + "base/test/")
 
-saveImagesOneByOne(data_path + "training/images/",  preproc_path + "base/train/")
-saveImagesOneByOne(data_path + "test_images/", preproc_path + "base/test/")
+def trainAll(name="base", layers=[5, 5, 1]):
 
-print("Loading base...")
+    print("Loading " + name + "...")
 
-train = tools.openFolder(preproc_path + "base/train/")
-test = tools.openFolder(preproc_path + "base/test/")
-groundtruth = tools.openFolder(groundtruth_path)
+    train = tools.openFolder(preproc_path + name + "/train/")
+    test = tools.openFolder(preproc_path + name + "/test/")
+    groundtruth = tools.openFolder(groundtruth_path)
 
-print("Augmenting base...")
+    trainModels(train, groundtruth, name, layers=layers)
+    trainModels(train, groundtruth, name + "_d", layers=layers, useDistance=True)
+    # trainModels(train, groundtruth, name + "_n", layers=layers, useNeighbours=True)
 
-mean_point = distance.computeMeanPoint(train, groundtruth)
-train_d = distance.augmentImages(train, mean_point)
-test_d = distance.augmentImages(test, mean_point)
+def generatePredictions(name="base"):
 
-print("Loading morpho...")
+    print("Loading base...")
 
-train_morpho = tools.openFolder(preproc_path + "morpho/train/")
-test_morpho = tools.openFolder(preproc_path + "morpho/train/")
+    train = tools.openFolder(preproc_path + name + "/train/")
+    test = tools.openFolder(preproc_path + name + "/test/")
+    groundtruth = tools.openFolder(groundtruth_path)
 
-print("Augmenting morpho")
+    savePredictions(train, groundtruth, name)
+    savePredictions(train, groundtruth, name + "_d", useDistance=True)
 
-mean_point_morpho = distance.computeMeanPoint(train_morpho, groundtruth)
-train_morpho_d = distance.augmentImages(train_morpho, mean_point_morpho)
-test_morpho_d = distance.augmentImages(test_morpho, mean_point_morpho)
+def evaluateAll():
+    print("Evaluation")
+    folder = "predictions/"
+    l = os.listdir(folder)
+    l = [x[:-4] for x in l if x[:6] != "truth_"]
+    for x in l:
+        print(x, evaluation.evaluate(x))
 
-# mean_point_base = distance.computeMeanPoint(preproc_path + "base/train/", groundtruth_path)
-# augmentDistance(preproc_path + "base/train/", preproc_path + "base_d/train/", mean_point_base)
-# augmentDistance(preproc_path + "base/test/", preproc_path + "base_d/test/", mean_point_base)
+# saveImages()
+# trainAll("base")
+# trainAll("morpho")
+# generatePredictions("base")
+# generatePredictions("morpho")
 
-# mean_point_morpho = distance.computeMeanPoint(preproc_path + "morpho/train/", groundtruth_path)
-# augmentDistance(preproc_path + "morpho/train/", preproc_path + "morpho_d/train/", mean_point_morpho)
-# augmentDistance(preproc_path + "morpho/test/", preproc_path + "morpho_d/test/", mean_point_morpho)
-
-# groundtruth = np.reshape(groundtruth, [-1])
-
-# np.random.seed(42)
-# np.random.shuffle(groundtruth)
+evaluateAll()
