@@ -12,6 +12,7 @@ from PIL import Image
 from random import randint
 import numpy as np
 import common.project_paths
+from skimage.util import random_noise
 
 def solution_to_img(sol):
     (xx, yy) = sol.shape
@@ -184,8 +185,8 @@ def random_transformation(img):
     img = np.rot90(img,r)
     if randint(0,1):
         img = np.flipud(img)
-    r = randint(-10,10)/100
+    r = randint(-5,5)/100
     img[:,:,randint(0,img.shape[2]-1)] += r
-    r = 0.8 + randint(0,40)/100
+    r = 0.95 + randint(0,10)/100
     img[:,:,randint(0,img.shape[2]-1)] *= r
-    return img
+    return random_noise(img)

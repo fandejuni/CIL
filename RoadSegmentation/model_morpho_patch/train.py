@@ -18,20 +18,21 @@ PATCH_SIZE = 8
 CONTEXT_SIZE = 80
 BATCH_SIZE = 512
 VAL_SIZE = 1000
-NUM_FEATURES = 3
-NUM_EPOCHS = 200
+NUM_FEATURES = 7
+NUM_EPOCHS = 100
 REDUCE_LR_PATIENCE = 20
 
 ### Data Loading
 def load_data_with_padding():
     print("Loading data...")
-    image_path = project_paths.TRAIN_IMAGE_PATH
-    base_filenames = [filename[:-4] for filename in os.listdir(image_path) if filename.endswith(".png")]
-    image_filenames = [str(image_path/(filename+".png")) for filename in base_filenames]
+    image_path = project_paths.PREPROCESSED_PATH / "morphological" / "train"
+    base_filenames = [filename[:-4] for filename in os.listdir(image_path) if filename.endswith(".npy")]
+    image_filenames = [str(image_path/(filename+".npy")) for filename in base_filenames]
     mask_path = project_paths.TRAIN_GROUNDTRUTH_PATH
     mask_filenames = [str(mask_path/(filename+".png")) for filename in base_filenames]
     
-    sample_image = mpimg.imread(image_filenames[0])
+   
+    sample_image = np.load(image_filenames[0])
     num = len(image_filenames)
     h, w, c = sample_image.shape
     padding = (CONTEXT_SIZE-PATCH_SIZE)//2
@@ -40,7 +41,7 @@ def load_data_with_padding():
     print("Loading images...")
     for i,filename in enumerate(image_filenames):
         print(".",end="")
-        image = mpimg.imread(filename)[:,:,:3]
+        image = np.load(filename)
         images[i] = tools.pad_with_reflection(image, padding)
     print("\nLoading masks...")
     for i,filename in enumerate(mask_filenames):
@@ -127,9 +128,9 @@ def FitModel(model):
     train_batch_generator = make_data_generator(images, masks, train_idx, BATCH_SIZE)
     val_batch_generator =  make_data_generator(images, masks, val_idx, BATCH_SIZE)
 
-    generate.create_folder(project_paths.MODELS_PATH / "patch")
+    generate.create_folder(project_paths.MODELS_PATH / "morpho_patch")
     
-    model_checkpoint = ModelCheckpoint(str(project_paths.MODELS_PATH / "patch" / ("patch_{epoch:02d}.h5")), period=5, verbose=2)
+    model_checkpoint = ModelCheckpoint(str(project_paths.MODELS_PATH / "morpho_patch" / ("morpho_patch_{epoch:02d}.h5")), period=5, verbose=2)
     reduce_lr = ReduceLROnPlateau(monitor="loss", factor=0.5, patience=REDUCE_LR_PATIENCE, verbose=1)
     
     class_weight = {0: 1., 1: 3.}
@@ -142,7 +143,7 @@ def FitModel(model):
                         validation_steps = int(VAL_SIZE/BATCH_SIZE+0.5),
                         callbacks = [reduce_lr, model_checkpoint],
                         class_weight = class_weight)
-    with open(str(project_paths.MODELS_PATH / "patch" /"trainHistoryDict.pkl"), 'wb') as file_pi:
+    with open(str(project_paths.MODELS_PATH / "morpho_patch" /"trainHistoryDict.pkl"), 'wb') as file_pi:
         pickle.dump(history.history, file_pi)
         
 def main():
