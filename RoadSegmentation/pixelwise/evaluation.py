@@ -8,7 +8,7 @@ patch_size = 16
 img_size = 400
 n_images_per_fold = 20
 
-def getRCCBCC(Y_pred, Y_truth, threshold=0.5):
+def getValues(Y_pred, Y_truth, threshold=0.5):
 
     road = len(np.where(Y_truth >= 0.5)[0])
     back = len(np.where(Y_truth < 0.5)[0])
@@ -16,42 +16,39 @@ def getRCCBCC(Y_pred, Y_truth, threshold=0.5):
     both_road = len(np.where((Y_truth >= 0.5) & (Y_pred >= threshold))[0])
     both_back = len(np.where((Y_truth < 0.5) & (Y_pred < threshold))[0])
 
-    RCC = both_road / road
-    BCC = both_back / back
-    acc = (both_back + both_road) / (road + back)
+    return (road, back, both_road, both_back)
 
-    return (acc, RCC, BCC)
+def evaluate(name="predictions/morpho_dn", truth_name="predictions/truth", t=0.5):
 
-def backPercentage(Y):
-    road = len(np.where(Y >= 0.5)[0])
-    back = len(np.where(Y < 0.5)[0])
-    n = road + back
-    return (back / n)
+    road_total = 0.0
+    back_total = 0.0
+    both_road_total = 0.0
+    both_back_total = 0.0
 
-def evaluate(name="predictions/morpho_dn", truth_name="predictions/truth", thresholds=[0.5]):
-
-    print("Evaluation...", name, truth_name)
+    squared_RMSE_total = 0.0
 
     for i in range(n_fold):
-
-        print()
-        print(i)
 
         Y_truth = np.load(truth_name + "_" + str(i) + ".npy")
         Y_truth = np.reshape(Y_truth, [-1])
         Y_pred = np.load(name + "_" + str(i) + ".npy")
         Y_pred = np.reshape(Y_pred, [-1])
 
-        RMSE = np.sqrt(np.mean((Y_truth - Y_pred) ** 2))
-        bp_truth = backPercentage(Y_truth)
-        bp_pred = backPercentage(Y_pred)
+        squared_RMSE_total += np.mean((Y_truth - Y_pred) ** 2)
+        (road, back, both_road, both_back) = getValues(Y_pred, Y_truth, threshold=t)
 
-        print("Percentages", "truth", bp_truth, "pred", bp_pred)
-        print("RMSE", RMSE)
+        road_total += road
+        back_total += back
+        both_road_total += both_road
+        both_back_total += both_back
 
-        for t in thresholds:
-            (acc, RCC, BCC) = getRCCBCC(Y_pred, Y_truth, threshold=t)
-            print("threshold", t, "acc", acc, "RCC", RCC, "BCC", BCC)
+    RMSE = np.sqrt(squared_RMSE_total / n_fold)
+    acc = (both_back_total + both_road_total) / (road_total + back_total)
+    RCC = both_road_total / road_total
+    BCC = both_back_total / back_total
+    # back_percent = back_total / (back_total + road_total)
+
+    return (name.split("/")[-1], "%.3f" % acc, "%.3f" % RMSE, "%.3f" % RCC, "%.3f" % BCC)
 
 if __name__ == "__main__":
     evaluate(name="cnn_predictions/morpho_tta_post", truth_name="cnn_predictions/truth")

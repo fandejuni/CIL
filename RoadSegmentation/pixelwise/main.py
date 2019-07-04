@@ -5,7 +5,11 @@ Created on Thu May 23 21:15:05 2019
 @author: Justin Dallant
 """
 
-local_folder = "/content/gdrive/My Drive/"
+# Settings for Google Colab
+# local_folder = "/content/gdrive/My Drive/"
+
+# Settings for local use
+local_folder = "../"
 
 import os
 import numpy as np
@@ -18,6 +22,8 @@ import neighbours
 import patch
 import nn
 import evaluation
+
+from tabulate import tabulate
 
 def saveImagesOneByOne(in_path, out_path):
     tools.create_folder(out_path)
@@ -142,12 +148,34 @@ def generatePredictions(name="base"):
     savePredictions(train, groundtruth, name + "_dn", useDistance=True, useNeighbours=True)
 
 def evaluateAll():
-    print("Evaluation")
-    folder = local_folder + "pixelwise/predictions/"
-    l = os.listdir(folder)
-    l = [x[:-4] for x in l if x[:6] != "truth_"]
+
+    print("Evaluation...")
+
+    results = []
+
+    folder_pred = local_folder + "pixelwise/predictions/"
+    l = os.listdir(folder_pred)
+    l = [x[:-6] for x in l if x[:6] != "truth_"]
+    l = list(set(l))
+
     for x in l:
-        print(x, evaluation.evaluate(x))
+        name = folder_pred + x
+        truth = folder_pred + "truth_" + x
+        results.append(evaluation.evaluate(name=name, truth_name=truth))
+
+    folder_pred = local_folder + "pixelwise/cnn_predictions/"
+    l = os.listdir(folder_pred)
+    l = [x[:-6] for x in l if x[:6] != "truth_"]
+    l = list(set(l))
+
+    truth = folder_pred + "truth"
+    for x in l:
+        name = folder_pred + x
+        results.append(evaluation.evaluate(name=name, truth_name=truth))
+
+    results.sort(key = lambda x: -float(x[1]))
+    print(tabulate(results, headers=['Name', 'Acc', 'RMSE', 'RCC', 'BCC'], tablefmt='orgtbl'))
+
 
 saveImages()
 trainAll("base")
