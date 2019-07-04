@@ -117,7 +117,7 @@ def savePredictions(train, groundtruth, name, useDistance=False, useNeighbours=F
 
 
 
-data_path = "../data/"
+data_path = "/content/gdrive/My Drive/data/"
 preproc_path = data_path + "preprocessed/"
 groundtruth_path = preproc_path + "groundtruth/"
 
@@ -137,7 +137,8 @@ def trainAll(name="base", layers=[5, 5, 1]):
     trainModels(train, groundtruth, name, layers=layers)
     trainModels(train, groundtruth, name + "_d", layers=layers, useDistance=True)
     trainModels(train, groundtruth, name + "_p", layers=layers, usePatch=True)
-    # trainModels(train, groundtruth, name + "_n", layers=layers, useNeighbours=True)
+    trainModels(train, groundtruth, name + "_dn", layers=layers, useNeighbours=True, useDistance=True)
+    trainModels(train, groundtruth, name + "_n", layers=layers, useNeighbours=True)
 
 def generatePredictions(name="base"):
 
@@ -158,10 +159,10 @@ def evaluateAll():
     for x in l:
         print(x, evaluation.evaluate(x))
 
-# saveImages()
+saveImages()
 trainAll("base")
-# trainAll("morpho")
-# generatePredictions("base")
-# generatePredictions("morpho")
+generatePredictions("base")
+trainAll("morpho")
+generatePredictions("morpho")
 
 evaluateAll()

@@ -2,3 +2,5 @@
 *.npy
 __pycache__
 *.swp
+*.h5
+*.pkl
