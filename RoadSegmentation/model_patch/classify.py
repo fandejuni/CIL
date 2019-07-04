@@ -1,27 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu May 23 22:38:01 2019
-
-@author: Justin Dallant
-"""
-
 
 IM_HEIGHT = 608
 IM_WIDTH = 608
 
 import os
 from os import sys
-import re
 import numpy as np
 import matplotlib.image as mpimg
-from tensorflow.keras.models import Model, Sequential, load_model
-from tensorflow.keras.regularizers import l2
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.layers import Dense, LeakyReLU, Flatten, Conv2D, Conv2DTranspose, MaxPooling2D, Dropout, concatenate, Input, UpSampling2D
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.keras.utils import Sequence
-from tensorflow.keras import backend as K
-from random import randint
+from tensorflow.keras.models import load_model
+from keras.preprocessing.image import ImageDataGenerator
 
 if __name__ == '__main__' and __package__ is None:
     from os import path
@@ -29,11 +15,9 @@ if __name__ == '__main__' and __package__ is None:
 
 from common import generate, project_paths, tools, mask_to_submission
 
-MODEL_NAME = "patch"
+MODEL_NAME = "patch_155"
 PATCH_SIZE = 8
-CONTEXT_SIZE = 96
-
-### Data Loading
+CONTEXT_SIZE = 80
 
 def main():
     print("b Classifying with {}...".format(MODEL_NAME))
@@ -47,17 +31,33 @@ def main():
     
     generate.create_folder(project_paths.MASKS_TEST_PATH / "patch")
     generate.create_folder(project_paths.RESULTS_TEST_PATH / "patch")
-    generate.create_folder(project_paths.RESULTS_TEST_PATH / "patchogray")
+    generate.create_folder(project_paths.RESULTS_TEST_PATH / "patchgray")
+    generate.create_folder(project_paths.SUBMISSIONS_PATH / "patch")
+
+    datagen = ImageDataGenerator(
+        shear_range=0.1,
+        zoom_range=0.1,
+        horizontal_flip=True,
+        rotation_range=20.,
+        fill_mode='reflect',
+        width_shift_range = 0.05, 
+        height_shift_range = 0.05)
     
     for file_idx,filename in enumerate(full_filenames):
         base_name, _ = filenames[file_idx].split(".")
         print("Generating mask for {}...".format(base_name))
-        image = np.load(filename)
+        image = mpimg.imread(filename)
         imgheight = image.shape[0]
         imgwidth = image.shape[1]
         image = tools.pad_with_reflection(image, (CONTEXT_SIZE-PATCH_SIZE)//2)
         list_patches = tools.img_crop(image, CONTEXT_SIZE, CONTEXT_SIZE, PATCH_SIZE, PATCH_SIZE)
-        list_labels = model.predict(np.array(list_patches), verbose=1)
+        
+        predictions = []
+        for _ in range(7):
+            list_labels = model.predict(datagen.flow(list_patches, batch_size=len(list_patches), shuffle=False))
+            predictions.append(list_labels)
+        list_labels = np.mean(predictions, axis=0)
+    
         mask = np.zeros((imgheight, imgwidth))
         gray_mask = np.zeros((imgheight, imgwidth))
         
@@ -67,7 +67,7 @@ def main():
                 label = list_labels[idx]
                 idx += 1
                 gray_mask[i:i+PATCH_SIZE, j:j+PATCH_SIZE] = label[1]
-                if (label[1] > 0.8):
+                if (label[1] > label[0]):
                     mask[i:i+PATCH_SIZE, j:j+PATCH_SIZE] = 1
         
         mask_img = tools.solution_to_img(mask)
@@ -81,10 +81,9 @@ def main():
     
     mask_path = project_paths.MASKS_TEST_PATH / "patch"
     image_filenames =  [str(mask_path / filename) for filename in os.listdir(mask_path) if filename.endswith(".png")]
-    mask_to_submission.masks_to_submission(project_paths.SUBMISSIONS_PATH / "patch" / "test0.csv", *image_filenames)
+    mask_to_submission.masks_to_submission(project_paths.SUBMISSIONS_PATH / "patch" / "submission.csv", *image_filenames)
 
         
 if __name__ == "__main__":
     main()
-    
 
