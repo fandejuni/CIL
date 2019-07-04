@@ -7,7 +7,6 @@ def simplify(X):
     return np.concatenate([np.mean(Y, axis=0), np.std(Y, axis=0)])
 
 def convertImage(X):
-    # XX = np.zeros([X.shape[0] * X.shape[1] // size**2, size**2 * X.shape[-1]])
     XX = np.zeros([X.shape[0] // size, X.shape[1] // size, 2 * X.shape[-1]])
     for x in range(X.shape[0] // size):
         for y in range(X.shape[1] // size):
