@@ -1,34 +1,35 @@
-# Get started
+# 1. Setting up the data
 
-## Get the data
+The data has to be put in the *data* folder.
 
-Download data from https://inclass.kaggle.com/c/cil-road-segmentation-2019/data
+- The test images in *data/test_images*
+- The training data in *data/training/images* and *data/training/groundtruth*
 
-Put the "training" and "test_images" folders in "RoadSegmentation/data"
+Then run *python save_images.py* to save the data in the relevant folders in *.npy* format.
 
-# Organisation
+# 2. Augment the data with morphological features
 
-generated:
+Once the data is set up (1):
+Run *python morphological_feature_augmentation/feature_augmentation.py*
 
-* masks_test
-* masks_train
-* models
-* results_test
-* submissions: csv files to submit
+# 3. Get the Kaggle submission
 
-# Conseils
+The data has to have been augmented (1 and 2).
 
-## Imports
+1. Run *python model_morpho_patch/train.py*
+2. Run *python model_morpho_patch/classify.py*
+3. Run *python simple_post_processing/post_processing.py*
 
-Mettre
+The submission should then be located at *generated/submissions/morpho_patch_post/submission.csv*
 
-if __name__ == '__main__' and __package__ is None:
-    from os import sys, path
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+# 4. Get the comparison results
 
-en début de fichier Python avant d'importer common.whatever
+The baselines are all implemented in the *pixelwise* folder.
+The evaluation is also implemented in the *pixelwise* folder.
 
-## Utiliser les fonctions pour générer des résultats
+The data has to have been augmented (1 and 2).
+If you want to get the comparison data from our novel approach, run *python python model_patch/crossval.py*.
 
-* generate.run_predictions_training_set("cnn", get_prediction, TRAINING_SIZE)
-* generate.run_predictions_test_set("cnn", get_prediction)
+Then simply run *python pixelwise/main.py*.
+This will train the baselines on the subsets defined the 5-fold cross-validation, generate the predictions of the baselines,
+and use the predictions from the baselines (and from our novel approach) to show a table of summarized results similar (and with similar values) to the one in the report.
